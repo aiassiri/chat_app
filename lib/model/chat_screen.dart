@@ -116,7 +116,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     final text = event.snapshot.value["text"];
     final imageUrl = event.snapshot.value["imageUrl"];
     final user = event.snapshot.value['username'];
-    print("ZEFT User: " + user);
+    print("User: " + user);
 
     if (user == _uid) {
       ChatMessage message = imageUrl == null
@@ -191,7 +191,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     return Scaffold(
       appBar: AppBar(
         title: Text(_title),
-        /*actions: <Widget>[
+        actions: <Widget>[
           PopupMenuButton<Choice>(
             onSelected: _select,
             itemBuilder: (BuildContext context) {
@@ -203,7 +203,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
               }).toList();
             },
           ),
-        ],*/
+        ],
         elevation: Theme
             .of(context)
             .platform == TargetPlatform.iOS ? 0.0 : 4.0,

@@ -36,7 +36,7 @@ class _RootPageState extends State<RootPage> {
       setState(() {
         if (user != null) {
           _userId = user?.uid;
-          print("ZEFT UserID:"+_userId);
+          print("UserID:"+_userId);
         }
         authStatus =
             user?.uid == null ? AuthStatus.NOT_LOGGED_IN : AuthStatus.LOGGED_IN;
@@ -86,7 +86,7 @@ class _RootPageState extends State<RootPage> {
         break;
       case AuthStatus.LOGGED_IN:
         if (_userId.length > 0 && _userId != null) {
-          print("ZEFT2 userID"+_userId);
+          print(" userID"+_userId);
           return ChatScreen(
             'Friendly Chat',
             _userId,
