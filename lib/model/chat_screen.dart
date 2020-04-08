@@ -13,7 +13,8 @@ import 'package:uuid/uuid.dart';
 //const String _name = "Nhan Nguyen";
 
 class ChatScreen extends StatefulWidget {
-  ChatScreen(String title, String id, {Key key, this.auth, this.userId, this.onSignedOut})
+  ChatScreen(String title, String id,
+      {Key key, this.auth, this.userId, this.onSignedOut})
       : _title = title,
         _uid = id,
         super(key: key);
@@ -49,18 +50,16 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         _isComposing = false,
         _messages = <ChatMessage>[],
         _textController = TextEditingController(),
-        _messageDatabaseReference = FirebaseDatabase.instance.reference().child(
-            "messages"),
-        _photoStorageReference = FirebaseStorage.instance.ref().child(
-            "chat_photos") {
+        _messageDatabaseReference =
+            FirebaseDatabase.instance.reference().child("messages"),
+        _photoStorageReference =
+            FirebaseStorage.instance.ref().child("chat_photos") {
     _messageDatabaseReference.onChildAdded.listen(_onMessageAdded);
   }
 
   Widget _buildTextComposer() {
     return IconTheme(
-        data: IconThemeData(color: Theme
-            .of(context)
-            .accentColor),
+        data: IconThemeData(color: Theme.of(context).accentColor),
         child: Container(
           margin: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Row(
@@ -75,7 +74,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                   },
                   onSubmitted: _handleSubmitted,
                   decoration:
-                  InputDecoration.collapsed(hintText: "Send a message"),
+                      InputDecoration.collapsed(hintText: "Send a message"),
                 ),
               ),
               Container(
@@ -84,27 +83,25 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
                     children: <Widget>[
                       IconButton(
                         icon: Icon(Icons.camera_alt),
-                        onPressed:_sendImageFromCamera,
+                        onPressed: _sendImageFromCamera,
                       ),
                       IconButton(
                         icon: Icon(Icons.image),
-                        onPressed:_sendImageFromGallery,
+                        onPressed: _sendImageFromGallery,
                       ),
-                      Theme
-                          .of(context)
-                          .platform == TargetPlatform.iOS
+                      Theme.of(context).platform == TargetPlatform.iOS
                           ? CupertinoButton(
-                        child: Text("Send"),
-                        onPressed: _isComposing
-                            ? () => _handleSubmitted(_textController.text)
-                            : null,
-                      )
+                              child: Text("Send"),
+                              onPressed: _isComposing
+                                  ? () => _handleSubmitted(_textController.text)
+                                  : null,
+                            )
                           : IconButton(
-                        icon: Icon(Icons.send),
-                        onPressed: _isComposing
-                            ? () => _handleSubmitted(_textController.text)
-                            : null,
-                      ),
+                              icon: Icon(Icons.send),
+                              onPressed: _isComposing
+                                  ? () => _handleSubmitted(_textController.text)
+                                  : null,
+                            ),
                     ],
                   ))
             ],
@@ -145,7 +142,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _messageDatabaseReference.push().set(message.toMap());
   }
 
- void _sendImage(ImageSource imageSource) async {
+  void _sendImage(ImageSource imageSource) async {
     File image = await ImagePicker.pickImage(source: imageSource);
     final String fileName = Uuid().v4();
     StorageReference photoRef = _photoStorageReference.child(fileName);
@@ -165,8 +162,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     _sendImage(ImageSource.gallery);
   }
 
-  ChatMessage _createMessageFromText(String text) =>
-      ChatMessage(
+  ChatMessage _createMessageFromText(String text) => ChatMessage(
         text: text,
         username: _uid,
         animationController: AnimationController(
@@ -176,8 +172,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
         dt: DateTime.now().toString(),
       );
 
-  ChatMessage _createMessageFromImage(String imageUrl) =>
-      ChatMessage(
+  ChatMessage _createMessageFromImage(String imageUrl) => ChatMessage(
         imageUrl: imageUrl,
         username: _uid,
         animationController: AnimationController(
@@ -185,7 +180,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           vsync: this,
         ),
       );
-
+  var recentJobsRef = FirebaseDatabase.instance.reference().child('messages');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -204,37 +199,63 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
             },
           ),
         ],
-        elevation: Theme
-            .of(context)
-            .platform == TargetPlatform.iOS ? 0.0 : 4.0,
+        elevation: Theme.of(context).platform == TargetPlatform.iOS ? 0.0 : 4.0,
       ),
       body: Container(
         child: Column(
           children: <Widget>[
-            Flexible(
-              child: ListView.builder(
-                padding: EdgeInsets.all(8.0),
-                reverse: true,
-                itemBuilder: (_, int index) => _messages[index],
-                itemCount: _messages.length,
-              ),
-            ),
+            StreamBuilder(
+                stream: recentJobsRef.onValue,
+                builder: (context, snap) {
+                  if (snap.hasData &&
+                      !snap.hasError &&
+                      snap.data.value != null) {
+                    DataSnapshot snapshot = snap.data.snapshot;
+                    List item = [];
+                    List _list = [];
+                    _list = snapshot.value;
+
+                    _list.forEach((f) {
+                      if (f != null) {
+                        item.add(f);
+                      }
+                    });
+
+                    return snap.data.snapshot.value == null
+                        ? SizedBox()
+                        : Flexible(
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: item.length,
+                              itemBuilder: (context, index) {
+                                return _messages[index];
+                              },
+                            ),
+                          );
+                  } else {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                }),
+            // Flexible(
+            //   child: ListView.builder(
+            //     padding: EdgeInsets.all(8.0),
+            //     reverse: true,
+            //     itemBuilder: (_, int index) => _messages[index],
+            //     itemCount: _messages.length,
+            //   ),
+            // ),
             Divider(height: 1.0),
             Container(
-              decoration: BoxDecoration(color: Theme
-                  .of(context)
-                  .cardColor),
+              decoration: BoxDecoration(color: Theme.of(context).cardColor),
               child: _buildTextComposer(),
             ),
           ],
         ),
-        decoration: Theme
-            .of(context)
-            .platform == TargetPlatform.iOS
+        decoration: Theme.of(context).platform == TargetPlatform.iOS
             ? BoxDecoration(
-            border: Border(
-              top: BorderSide(color: Colors.grey[200]),
-            ))
+                border: Border(
+                top: BorderSide(color: Colors.grey[200]),
+              ))
             : null,
       ),
     );
@@ -264,6 +285,7 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
     }
   }
 }
+
 class Choice {
   const Choice(this.title);
 
