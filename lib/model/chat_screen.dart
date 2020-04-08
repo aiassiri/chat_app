@@ -185,7 +185,9 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
           vsync: this,
         ),
       );
-
+  
+  // add this instance
+var recentJobsRef = FirebaseDatabase.instance.reference().child('messages');
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -211,14 +213,46 @@ class ChatScreenState extends State<ChatScreen> with TickerProviderStateMixin {
       body: Container(
         child: Column(
           children: <Widget>[
-            Flexible(
-              child: ListView.builder(
-                padding: EdgeInsets.all(8.0),
-                reverse: true,
-                itemBuilder: (_, int index) => _messages[index],
-                itemCount: _messages.length,
-              ),
-            ),
+            StreamBuilder(
+                stream: recentJobsRef.onValue,
+                builder: (context, snap) {
+                  if (snap.hasData &&
+                      !snap.hasError &&
+                      snap.data.value != null) {
+                    DataSnapshot snapshot = snap.data.snapshot;
+                    List item = [];
+                    List _list = [];
+                    _list = snapshot.value;
+
+                    _list.forEach((f) {
+                      if (f != null) {
+                        item.add(f); // or let for loop add list items to your var messages
+                      }
+                    });
+
+                    return snap.data.snapshot.value == null
+                        ? SizedBox()
+                        : Flexible(
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: item.length,
+                              itemBuilder: (context, index) {
+                                return item[index]; // also can replace it with *message* after adding query for loop to it
+                              },
+                            ),
+                          );
+                  } else {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                }),
+            // Flexible(
+            //   child: ListView.builder(
+            //     padding: EdgeInsets.all(8.0),
+            //     reverse: true,
+            //     itemBuilder: (_, int index) => _messages[index],
+            //     itemCount: _messages.length,
+            //   ),
+            // ),
             Divider(height: 1.0),
             Container(
               decoration: BoxDecoration(color: Theme
